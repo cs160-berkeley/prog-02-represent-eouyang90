@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -31,24 +32,21 @@ public class MainActivity extends Activity {
     private ArrayList<HashMap<String, String>> mrepData;
     private HashMap<String,String> mvoteData;
 
-    //Temporary data for demo purposes
-    //TODO; replace with API zipcodes
-    private String[] zipcodes = {"94709","94704","92009"};
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
         Intent intent = getIntent();
-        String zipcode = intent.getStringExtra(HomeActivity.EXTRA_MESSAGE);
-        //TODO; change so that it handles lat long
-        if (zipcode.equals(HomeActivity.CUR_LOC)){
-            int index = (int) Math.random()*zipcodes.length;
-            zipcode = zipcodes[index];
+        String latlon = intent.getStringExtra(HomeActivity.EXTRA_MESSAGE);
+        //TODO; change so that it handles random zips?
+        if (latlon.equals(HomeActivity.CUR_LOC)){
+//            int index = (int) Math.random()*zipcodes.length;
+//            zipcode = zipcodes[index];
         }
 
-        handleRepresentData(zipcode);
+        //get location data from latlon
+        getLocData(latlon);
 
         mupdateButton1 = (Button) findViewById(R.id.rep1_btn);
         mupdateButton2 = (Button) findViewById(R.id.rep2_btn);
@@ -110,10 +108,27 @@ public class MainActivity extends Activity {
         return super.onOptionsItemSelected(item);
     }
 
-    public HashMap<String, String> voteData(String zipcode){
-        //TODO; Get county from zipcode
-        String county = "Alameda";
-        String state = "CA";
+    public HashMap<String, String> voteData(String county, String state, String zipcode){
+
+        String serviceURL = "http://congress.api.sunlightfoundation.com/legislators/locate?"
+                + "zip=" + zipcode +"&apikey=787f9b8c4dd245d58e796cbca7a3aff2";
+        AsyncTask<String, Void, JSONObject> asyncTask =new WebAsyncTask(new AsyncResponse(){
+
+            @Override
+            public void processFinish(JSONObject output){
+                //Here you will receive the result fired from async class
+                //of onPostExecute(result) method.
+                ArrayList<HashMap<String, String>> data = new ArrayList<HashMap<String, String>>();
+                try {
+                    JSONArray jArray = output.getJSONArray("results");
+
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
+        }).execute(serviceURL);
+
+
         HashMap<String, String> dict = getVoteData(county, state);
 
         return dict;
@@ -141,7 +156,7 @@ public class MainActivity extends Activity {
                         JSONObject ctyJSON = votes.getJSONObject(i);
                         // Pulling items from the array
                         if (ctyJSON.getString("state-postal").toLowerCase().equals(state)
-                                && ctyJSON.getString("county-name").toLowerCase().equals(county)){
+                                && county.contains(ctyJSON.getString("county-name").toLowerCase())){
                             data.put("county", county);
                             data.put("state", state);
                             data.put("obama", ctyJSON.getString("obama-percentage"));
@@ -165,10 +180,14 @@ public class MainActivity extends Activity {
         }
     }
 
-    public void handleRepresentData(final String zipcode){
+    public void handleRepresentData(final HashMap<String, String> loc){
         final Context ctx = this;
+        final String zipcode = loc.get("zipcode");
+        final String state = loc.get("state");
+        final String county = loc.get("county");
         String serviceURL = "http://congress.api.sunlightfoundation.com/legislators/locate?"
             + "zip=" + zipcode +"&apikey=787f9b8c4dd245d58e796cbca7a3aff2";
+
         AsyncTask<String, Void, JSONObject> asyncTask =new WebAsyncTask(new AsyncResponse(){
 
             @Override
@@ -184,6 +203,7 @@ public class MainActivity extends Activity {
                         try {
                             JSONObject repJSON = jArray.getJSONObject(i);
                             // Pulling items from the array
+
                             dict.put("email", repJSON.getString("oc_email"));
                             dict.put("name", repJSON.getString("first_name") + " "
                                     + repJSON.getString("last_name"));
@@ -198,12 +218,13 @@ public class MainActivity extends Activity {
 
                         } catch (JSONException e) {
                             // Oops
+                            Log.d("T", "JSONexception in handleRepData");
                         }
                         data.add(dict);
                     }
 
                     //get vote data
-                    mvoteData = voteData(zipcode);
+                    mvoteData = voteData(county, state, zipcode);
 
                     //update views with new data
                     mrepData = data;
@@ -285,5 +306,49 @@ public class MainActivity extends Activity {
         sendIntent.putExtra(EXTRA_MESSAGE,bundle);
 
         startService(sendIntent);
+    }
+
+    public void getLocData(final String latlon){
+        String serviceURL = "https://maps.googleapis.com/maps/api/geocode/json?latlng="
+                + latlon +"&key=AIzaSyAk26JXUjFkV_tGwDPEYwIecxzYOlC3ves";
+        AsyncTask<String, Void, JSONObject> asyncTask =new WebAsyncTask(new AsyncResponse(){
+
+            @Override
+            public void processFinish(JSONObject output){
+                //Here you will receive the result fired from async class
+                //of onPostExecute(result) method.
+                HashMap<String, String> data = new HashMap<String, String>();
+                try {
+                    JSONArray jArray = output.getJSONArray("results");
+                    //first location object data
+                    JSONArray jAddrs = jArray.getJSONObject(0).getJSONArray("address_components");
+                    for (int i=0; i < jAddrs.length(); i++)
+                    {
+                        try {
+                            JSONObject comp = jAddrs.getJSONObject(i);
+                            // Pulling items from the array
+                            data.put("latlon", latlon);
+                            String type = comp.getString("types").toString().toLowerCase();
+                            if (type.contains("administrative_area_level_2")){
+                                data.put("county", comp.getString("short_name"));
+                            } else if (type.contains("administrative_area_level_1")){
+                                data.put("state", comp.getString("short_name"));
+                            } else if (type.contains("postal_code")
+                                    && !type.contains("postal_code_suffix")){
+                                data.put("zipcode", comp.getString("short_name"));
+                            }
+                        } catch (JSONException e) {
+                            // Oops
+                            e.printStackTrace();
+                        }
+                    }
+
+                    //TODO; update with correct location vals
+                    handleRepresentData(data);
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
+        }).execute(serviceURL);
     }
 }

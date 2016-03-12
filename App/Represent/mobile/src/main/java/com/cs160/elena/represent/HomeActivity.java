@@ -5,6 +5,8 @@ import android.app.Activity;
 import android.content.Intent;
 import android.content.IntentSender;
 import android.content.pm.PackageManager;
+import android.location.Address;
+import android.location.Geocoder;
 import android.location.Location;
 import android.os.Bundle;
 import android.support.v4.app.ActivityCompat;
@@ -22,6 +24,9 @@ import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.wearable.Wearable;
+
+import java.io.IOException;
+import java.util.List;
 
 
 public class HomeActivity extends Activity implements
@@ -64,11 +69,12 @@ public class HomeActivity extends Activity implements
             public void onClick(View v) {
                 EditText editText = (EditText) findViewById(R.id.zipcode);
                 String zipcode = editText.getText().toString();
-
+                String latlon = getLatlon(zipcode);
                 //send information containing presidential vote data
+                Log.d("T", "Latlon: " + latlon);
 
                 Intent intent = new Intent(getBaseContext(), MainActivity.class);
-                intent.putExtra(EXTRA_MESSAGE, zipcode);
+                intent.putExtra(EXTRA_MESSAGE, latlon);
                 startActivity(intent);
             }
         });
@@ -80,13 +86,31 @@ public class HomeActivity extends Activity implements
                 Log.d("T", "Latlon: " + mLatitude + mLongitude);
 
                 Intent intent = new Intent(getBaseContext(), MainActivity.class);
-                intent.putExtra(EXTRA_MESSAGE, mLatitude + ";" + mLongitude);
+                intent.putExtra(EXTRA_MESSAGE, mLatitude + "," + mLongitude);
                 startActivity(intent);
             }
         });
 
     }
 
+    public String getLatlon(String zipcode){
+        final Geocoder geocoder = new Geocoder(this);
+        try {
+            List<Address> addresses = geocoder.getFromLocationName(zipcode, 1);
+            if (addresses != null && !addresses.isEmpty()) {
+                Address address = addresses.get(0);
+                // Use the address as needed
+                return address.getLatitude() + "," + address.getLongitude();
+            } else {
+                // Display appropriate message when Geocoder services are not available
+                Log.d("T", "Unable to get Latlon");
+            }
+        } catch (IOException e) {
+            // handle exception
+            e.printStackTrace();
+        }
+        return null;
+    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -128,13 +152,6 @@ public class HomeActivity extends Activity implements
                 && ActivityCompat.checkSelfPermission(
                 this,
                 Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            // TODO: Consider calling
-            //    ActivityCompat#requestPermissions
-            // here to request the missing permissions, and then overriding
-            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-            //                                          int[] grantResults)
-            // to handle the case where the user grants the permission. See the documentation
-            // for ActivityCompat#requestPermissions for more details.
             Log.d(TAG, "Location permissions not set");
             return;
         }

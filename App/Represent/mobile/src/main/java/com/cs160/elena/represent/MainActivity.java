@@ -3,8 +3,8 @@ package com.cs160.elena.represent;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.os.AsyncTask;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -12,13 +12,17 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 
 public class MainActivity extends Activity {
     public final static String EXTRA_MESSAGE = "com.cs160.represent.MainActivity.RepInfo";
-    //there's not much interesting happening. when the buttons are pressed, they start
-    //the PhoneToWatchService with the cat name passed in.
 
     private Button mupdateButton1;
     private Button mupdateButton2;
@@ -38,16 +42,13 @@ public class MainActivity extends Activity {
 
         Intent intent = getIntent();
         String zipcode = intent.getStringExtra(HomeActivity.EXTRA_MESSAGE);
+        //TODO; change so that it handles lat long
         if (zipcode.equals(HomeActivity.CUR_LOC)){
             int index = (int) Math.random()*zipcodes.length;
             zipcode = zipcodes[index];
         }
 
-        mrepData = representData(zipcode);
-        mvoteData = voteData(zipcode);
-        updateViewData(mrepData);
-        //updateWatchData(repData.get(0), this);
-        updateWatchData2(mrepData, mvoteData, this);
+        handleRepresentData(zipcode);
 
         mupdateButton1 = (Button) findViewById(R.id.rep1_btn);
         mupdateButton2 = (Button) findViewById(R.id.rep2_btn);
@@ -61,8 +62,6 @@ public class MainActivity extends Activity {
                 Intent intent = new Intent(getBaseContext(), DetailedActivity.class);
                 intent.putExtra(EXTRA_MESSAGE, name);
                 startActivity(intent);
-
-                //updateWatchData(repData.get(0), getBaseContext());
             }
         });
         mupdateButton2.setOnClickListener(new View.OnClickListener() {
@@ -74,7 +73,6 @@ public class MainActivity extends Activity {
                 Intent intent = new Intent(getBaseContext(), DetailedActivity.class);
                 intent.putExtra(EXTRA_MESSAGE, name);
                 startActivity(intent);
-                //updateWatchData(repData.get(1), getBaseContext());
             }
         });
         mupdateButton3.setOnClickListener(new View.OnClickListener() {
@@ -85,8 +83,6 @@ public class MainActivity extends Activity {
                 Intent intent = new Intent(getBaseContext(), DetailedActivity.class);
                 intent.putExtra(EXTRA_MESSAGE, name);
                 startActivity(intent);
-
-                //updateWatchData(repData.get(2), getBaseContext());
             }
         });
     }
@@ -115,90 +111,115 @@ public class MainActivity extends Activity {
     }
 
     public HashMap<String, String> voteData(String zipcode){
-        //TODO; Replace with getting vote data through API
-        HashMap<String, String> dict1 = new HashMap<String, String>();
-        dict1.put("obama","Obama"+zipcode);
-        dict1.put("romney", "Romney"+zipcode);
-        dict1.put("county","county"+zipcode);
-        return dict1;
+        //TODO; Get county from zipcode
+        String county = "Alameda";
+        String state = "CA";
+        HashMap<String, String> dict = getVoteData(county, state);
+
+        return dict;
     }
 
-    public ArrayList<HashMap<String, String>> representData(String zipcode){
-        //TODO; Replace with getting data through API in future
-        HashMap<String, String> dict1 = new HashMap<String, String>();
-        HashMap<String, String> dict2 = new HashMap<String, String>();
-        HashMap<String, String> dict3 = new HashMap<String, String>();
-        dict1.put("tweet","Speaking on the Senate floor now about the Supreme Court vacancy");
-        dict1.put("name", "Dianne Feinstein, "+zipcode);
-        dict1.put("party","Democrat");
-        dict1.put("email","senator@feinstein.senate.gov");
-        dict1.put("site", "feinstein.senate.gov");
-        dict1.put("pic", "dianne_feinstein2");
+    private HashMap<String, String> getVoteData(String county, String state){
+        state = state.toLowerCase();
+        county = county.toLowerCase();
 
-        dict2.put("tweet","@SenateDems stood united at the Supreme Court today"
-                + "to tell @Senate_GOPs: #DoYourJob");
-        dict2.put("name", "Barbara Boxer, " + zipcode);
-        dict2.put("party", "Democrat");
-        dict2.put("email","senator@boxer.senate.gov");
-        dict2.put("site", "boxer.senate.gov");
-        dict2.put("pic", "barbara_boxer");
+        InputStream stream = null;
+        try {
+            stream = getAssets().open("election-county-2012.json");
+            int size = stream.available();
+            byte[] buffer = new byte[size];
+            stream.read(buffer);
+            stream.close();
 
-        dict3.put("tweet","In America, health care is not a privilege reserved for "
-                +"the few, but should be a right");
-        dict3.put("name", "Barbara Lee "+zipcode);
-        dict3.put("party","Democrat");
-        dict3.put("email","representative@lee.house.gov");
-        dict3.put("site", "lee.house.gov");
-        dict3.put("pic", "barbara_lee");
+            String jsonString = new String(buffer, "UTF-8");
+            HashMap<String, String> data = new HashMap<String, String>();
+            try {
+                JSONArray votes = new JSONArray(jsonString);
+                for (int i=0; i < votes.length(); i++)
+                {
+                    try {
+                        JSONObject ctyJSON = votes.getJSONObject(i);
+                        // Pulling items from the array
+                        if (ctyJSON.getString("state-postal").toLowerCase().equals(state)
+                                && ctyJSON.getString("county-name").toLowerCase().equals(county)){
+                            data.put("county", county);
+                            data.put("state", state);
+                            data.put("obama", ctyJSON.getString("obama-percentage"));
+                            data.put("romney", ctyJSON.getString("romney-percentage"));
+                        }
+                    } catch (JSONException e) {
+                        // Oops
+                        e.printStackTrace();
+                        return null;
+                    }
+                }
+            } catch (JSONException e) {
+                e.printStackTrace();
+                return null;
+            }
 
-        ArrayList<HashMap<String, String>> data = new ArrayList<HashMap<String, String>>();
-        data.add(dict1);
-        data.add(dict2);
-        data.add(dict3);
-        return data;
+            return data;
+        } catch (IOException e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 
-    public void updateWatchData(HashMap<String, String> data, Context ctx){
-        Log.d("T", "Starting new intent blahhh");
-        Intent sendIntent = new Intent(ctx, PhoneToWatchService.class);
-        //sendIntent.putExtra(EXTRA_MESSAGE, name);
-        Bundle bundle = new Bundle();
-        bundle.putString("REP_NAME", data.get("name"));
-        bundle.putString("REP_PARTY", data.get("party"));
-        bundle.putString("REP_PIC", data.get("pic"));
+    public void handleRepresentData(final String zipcode){
+        final Context ctx = this;
+        String serviceURL = "http://congress.api.sunlightfoundation.com/legislators/locate?"
+            + "zip=" + zipcode +"&apikey=787f9b8c4dd245d58e796cbca7a3aff2";
+        AsyncTask<String, Void, JSONObject> asyncTask =new WebAsyncTask(new AsyncResponse(){
 
-        sendIntent.putExtra(EXTRA_MESSAGE,bundle);
+            @Override
+            public void processFinish(JSONObject output){
+                //Here you will receive the result fired from async class
+                //of onPostExecute(result) method.
+                ArrayList<HashMap<String, String>> data = new ArrayList<HashMap<String, String>>();
+                try {
+                    JSONArray jArray = output.getJSONArray("results");
+                    for (int i=0; i < jArray.length(); i++)
+                    {
+                        HashMap<String, String> dict = new HashMap<String, String>();
+                        try {
+                            JSONObject repJSON = jArray.getJSONObject(i);
+                            // Pulling items from the array
+                            dict.put("email", repJSON.getString("oc_email"));
+                            dict.put("name", repJSON.getString("first_name") + " "
+                                    + repJSON.getString("last_name"));
+                            dict.put("party",repJSON.getString("party"));
+                            dict.put("site", repJSON.getString("website"));
+                            dict.put("bioguide_id", repJSON.getString("bioguide_id"));
+                            dict.put("term_end", repJSON.getString("term_end"));
 
-        startService(sendIntent);
+                            //TODO; temp holders
+                            dict.put("tweet","Speaking on the Senate floor now about the Supreme Court vacancy");
+                            dict.put("pic", "dianne_feinstein2");
+
+                        } catch (JSONException e) {
+                            // Oops
+                        }
+                        data.add(dict);
+                    }
+
+                    //get vote data
+                    mvoteData = voteData(zipcode);
+
+                    //update views with new data
+                    mrepData = data;
+                    updateViewData(data);
+
+                    //update watch views with new data
+                    updateWatchData(mrepData, mvoteData, ctx);
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
+        }).execute(serviceURL);
     }
 
-    public void updateWatchData2(ArrayList<HashMap<String, String>> data,
-                                 HashMap<String,String> voteData, Context ctx) {
-        Intent sendIntent = new Intent(ctx, PhoneToWatchService.class);
-        //sendIntent.putExtra(EXTRA_MESSAGE, name);
-        Bundle bundle = new Bundle();
-        HashMap<String,String> d = data.get(0);
-        bundle.putString("REP1", d.get("name")+";"+d.get("party")+";"+d.get("pic"));
-        d = data.get(1);
-        bundle.putString("REP2", d.get("name")+";"+d.get("party")+";"+d.get("pic"));
-        d = data.get(2);
-        bundle.putString("REP3", d.get("name")+";"+d.get("party")+";"+d.get("pic"));
-        d = voteData;
-        bundle.putString("VOTE", d.get("obama")+";"+d.get("romney")+";"+d.get("county"));
-
-        sendIntent.putExtra(EXTRA_MESSAGE,bundle);
-
-        startService(sendIntent);
-    }
-
-
-        public void updateViewData(ArrayList<HashMap<String, String>> data){
-        //Figure out how to do in a loop later
-//        for(int i=0; i<data.size(); i++){
-//            String curRep = "rep"+i+"_";
-//            TextView tweet = (TextView) findViewById(R.id.rep_tweet);
-//            tweet.setText(zipcode);
-//        }
+    public void updateViewData(ArrayList<HashMap<String, String>> data){
+        //TODO; Figure out how to do with list views later
 
         TextView tweet = (TextView) findViewById(R.id.rep1_tweet);
         tweet.setText(data.get(0).get("tweet"));
@@ -245,5 +266,24 @@ public class MainActivity extends Activity {
         id = getResources().getIdentifier(data.get(2).get("pic"), "drawable", "com.cs160.elena.represent");
         img = (ImageView) findViewById(R.id.rep3_img);
         img.setImageResource(id);
+    }
+
+    public void updateWatchData(ArrayList<HashMap<String, String>> data,
+                                 HashMap<String,String> voteData, Context ctx) {
+        Intent sendIntent = new Intent(ctx, PhoneToWatchService.class);
+        //sendIntent.putExtra(EXTRA_MESSAGE, name);
+        Bundle bundle = new Bundle();
+        HashMap<String,String> d = data.get(0);
+        bundle.putString("REP1", d.get("name")+";"+d.get("party")+";"+d.get("pic"));
+        d = data.get(1);
+        bundle.putString("REP2", d.get("name")+";"+d.get("party")+";"+d.get("pic"));
+        d = data.get(2);
+        bundle.putString("REP3", d.get("name")+";"+d.get("party")+";"+d.get("pic"));
+        d = voteData;
+        bundle.putString("VOTE", d.get("obama")+";"+d.get("romney")+";"+d.get("county"));
+
+        sendIntent.putExtra(EXTRA_MESSAGE,bundle);
+
+        startService(sendIntent);
     }
 }

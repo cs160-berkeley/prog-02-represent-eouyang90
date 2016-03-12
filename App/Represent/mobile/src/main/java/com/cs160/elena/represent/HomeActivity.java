@@ -1,8 +1,13 @@
 package com.cs160.elena.represent;
 
+import android.Manifest;
 import android.app.Activity;
 import android.content.Intent;
+import android.content.IntentSender;
+import android.content.pm.PackageManager;
+import android.location.Location;
 import android.os.Bundle;
+import android.support.v4.app.ActivityCompat;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -11,19 +16,46 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.location.LocationListener;
+import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.wearable.Wearable;
 
-public class HomeActivity extends Activity {
+
+public class HomeActivity extends Activity implements
+        GoogleApiClient.ConnectionCallbacks,
+        GoogleApiClient.OnConnectionFailedListener,
+        LocationListener{
     //there's not much interesting happening. when the buttons are pressed, they start
     //the PhoneToWatchService with the cat name passed in.
     public final static String EXTRA_MESSAGE = "com.cs160.represent.HomeActivity.ZIPCODE";
+    public final static String TAG = HomeActivity.class.getSimpleName();
     public final static String CUR_LOC = "currentLocation";
+    private final static int CONNECTION_FAILURE_RESOLUTION_REQUEST = 9000;
 
     private Button mupdateButton;
+    private GoogleApiClient mGoogleApiClient;
+    private LocationRequest mLocationRequest;
+    private Location mLastLocation;
+    private String mLatitude;
+    private String mLongitude;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home);
+
+        // Create an instance of GoogleAPIClient.
+        if (mGoogleApiClient == null) {
+            mGoogleApiClient = new GoogleApiClient.Builder(this)
+                    .addConnectionCallbacks(this)
+                    .addOnConnectionFailedListener(this)
+                    .addApi(LocationServices.API)
+                    .addApi(Wearable.API)
+                    .build();
+        }
 
         mupdateButton = (Button) findViewById(R.id.button);
 
@@ -33,27 +65,22 @@ public class HomeActivity extends Activity {
                 EditText editText = (EditText) findViewById(R.id.zipcode);
                 String zipcode = editText.getText().toString();
 
-                Log.d("T", "about to start intenthdjhgfjhgf");
-
                 //send information containing presidential vote data
-                //Intent sendIntent = new Intent(getBaseContext(), PhoneToWatchService.class);
-                //sendIntent.putExtra(EXTRA_MESSAGE, zipcode);
-//                sendIntent.putExtra(EXTRA_MESSAGE, "FRED");
-//                startService(sendIntent);
-//                Log.d("T", "ended intent");
-//
+
                 Intent intent = new Intent(getBaseContext(), MainActivity.class);
                 intent.putExtra(EXTRA_MESSAGE, zipcode);
                 startActivity(intent);
             }
         });
 
-        TextView btn=(TextView) findViewById(R.id.curLoc);
+        TextView btn = (TextView) findViewById(R.id.curLoc);
         btn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                Log.d("T", "Latlon: " + mLatitude + mLongitude);
+
                 Intent intent = new Intent(getBaseContext(), MainActivity.class);
-                intent.putExtra(EXTRA_MESSAGE, CUR_LOC);
+                intent.putExtra(EXTRA_MESSAGE, mLatitude + ";" + mLongitude);
                 startActivity(intent);
             }
         });
@@ -81,5 +108,90 @@ public class HomeActivity extends Activity {
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    protected void onStart() {
+        mGoogleApiClient.connect();
+        super.onStart();
+    }
+
+    protected void onStop() {
+        mGoogleApiClient.disconnect();
+        super.onStop();
+    }
+
+    @Override
+    public void onConnected(Bundle bundle) {
+        Log.d(TAG, "Location services connected.");
+        if (ActivityCompat.checkSelfPermission(this,
+                Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
+                && ActivityCompat.checkSelfPermission(
+                this,
+                Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            // TODO: Consider calling
+            //    ActivityCompat#requestPermissions
+            // here to request the missing permissions, and then overriding
+            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+            //                                          int[] grantResults)
+            // to handle the case where the user grants the permission. See the documentation
+            // for ActivityCompat#requestPermissions for more details.
+            Log.d(TAG, "Location permissions not set");
+            return;
+        }
+        mLastLocation = LocationServices.FusedLocationApi.getLastLocation(
+                mGoogleApiClient);
+        if (mLastLocation != null) {
+            handleNewLocation(mLastLocation);
+        } else {
+            mLocationRequest = new LocationRequest();
+            mLocationRequest.setInterval(10 * 1000);
+            mLocationRequest.setFastestInterval(1 * 1000);
+            mLocationRequest.setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY);
+            LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest, this);
+        }
+    }
+
+    @Override
+    public void onConnectionSuspended(int i) {
+        Log.d(TAG, "Location services suspended. Please reconnect.");
+    }
+
+    @Override
+    public void onConnectionFailed(ConnectionResult connectionResult) {
+        if (connectionResult.hasResolution()) {
+            try {
+                // Start an Activity that tries to resolve the error
+                connectionResult.startResolutionForResult(this, CONNECTION_FAILURE_RESOLUTION_REQUEST);
+            } catch (IntentSender.SendIntentException e) {
+                e.printStackTrace();
+            }
+        } else {
+            Log.i(TAG, "Location services connection failed with code " + connectionResult.getErrorCode());
+        }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        mGoogleApiClient.connect();
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        if (mGoogleApiClient.isConnected()) {
+            mGoogleApiClient.disconnect();
+        }
+    }
+
+    @Override
+    public void onLocationChanged(Location location) {
+        handleNewLocation(location);
+    }
+
+    private void handleNewLocation(Location location) {
+        mLastLocation = location;
+        mLatitude = String.valueOf(location.getLatitude());
+        mLongitude = String.valueOf(location.getLongitude());
     }
 }

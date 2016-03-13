@@ -49,7 +49,7 @@ public class MainGridPagerAdapter extends FragmentGridPagerAdapter {
     @Override
     public Fragment getFragment(int row, int column) {
         //return (MainCardFragment.create(names[row][column], parties[column]));
-        if (column == 3){
+        if (column == names.size()){
             //return the 2012 vote view
             VoteCardFragment myCard = new VoteCardFragment();
             Bundle args = new Bundle();

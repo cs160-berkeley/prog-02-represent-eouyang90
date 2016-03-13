@@ -3,11 +3,12 @@ package com.cs160.elena.represent;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.text.Html;
+import android.text.method.LinkMovementMethod;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
-import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -57,14 +58,16 @@ public class RepAdapter extends BaseAdapter {
         TextView emailView = (TextView) repRow.findViewById(R.id.rep1_email);
         TextView siteView = (TextView) repRow.findViewById(R.id.rep1_site);
         ImageView pictureView = (ImageView) repRow.findViewById(R.id.rep1_img);
-        Button updateButton = (Button) repRow.findViewById(R.id.rep1_btn);
 
 
         nameView.setText(mrepData.get(pos).get("name"));
-        tweetView.setText(mrepData.get(pos).get("tweet"));
+        tweetView.setText("\""+mrepData.get(pos).get("tweet")+"\"");
         emailView.setText(mrepData.get(pos).get("email"));
-        partyView.setText(mrepData.get(pos).get("party"));
-        siteView.setText(mrepData.get(pos).get("site"));
+        siteView.setClickable(true);
+        siteView.setMovementMethod(LinkMovementMethod.getInstance());
+        siteView.setText(Html.fromHtml("<a href=\""
+                + mrepData.get(pos).get("site") + "\">"
+                + mrepData.get(pos).get("site") + "</a> "));
         Picasso
                 .with(mContext)
                 .load(mrepData.get(pos).get("pic"))
@@ -78,7 +81,7 @@ public class RepAdapter extends BaseAdapter {
         final String name = mrepData.get(pos).get("name");
         final String pic = mrepData.get(pos).get("pic");
         final String party = mrepData.get(pos).get("party");
-        updateButton.setOnClickListener(new View.OnClickListener() {
+        pictureView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(mContext, DetailedActivity.class);
@@ -93,6 +96,16 @@ public class RepAdapter extends BaseAdapter {
                 mContext.startActivity(intent);
             }
         });
+
+        if (mrepData.get(pos).get("party").equals("D")){
+            repRow.findViewById(R.id.rep1).setBackgroundResource(R.color.darkblue);
+            tweetView.setBackgroundResource(R.drawable.round_blue);
+            partyView.setText("Democrat");
+        } else {
+            repRow.findViewById(R.id.rep1).setBackgroundResource(R.color.darkred);
+            tweetView.setBackgroundResource(R.drawable.round_red);
+            partyView.setText("Republican");
+        }
 
 
         return repRow;

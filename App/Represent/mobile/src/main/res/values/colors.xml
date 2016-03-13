@@ -6,7 +6,10 @@
     <color name="darkblue">#073675</color>
     <color name="darkred">#50090C</color>
     <color name="blue">#2F80ED</color>
-    <color name="red">#EB5757</color>
+    <color name="red">#940E0E</color>
     <color name="white">#FFFFFF</color>
-    <color name="lightblue">#8bc8f1</color>
+    <color name="lightblue">#236BCA</color>
+    <color name="lightred">#EB5757</color>
+    <color name="black">#111111</color>
+    <color name="grey">#bcc9cf</color>
 </resources>

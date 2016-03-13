@@ -7,7 +7,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:weightSum="1"
-        android:background="@color/darkblue">
+        android:background="@color/lightblue">
         <LinearLayout
             android:orientation="horizontal"
             android:layout_width="match_parent"
@@ -55,6 +55,15 @@
                     android:layout_gravity="center_horizontal" />
             </LinearLayout>
         </LinearLayout>
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:padding="2dp"
+            android:text="Committees"
+            android:textColor="@color/darkblue"
+            android:id="@+id/rep_comm"
+            android:layout_weight="0.06"
+            android:layout_gravity="center_horizontal" />
         <ListView
             android:layout_width="wrap_content"
             android:layout_height="178dp"

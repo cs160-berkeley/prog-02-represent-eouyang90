@@ -27,8 +27,14 @@ public class MyCard extends CardFragment {
             public void onClick(View v) {
                 Log.d("T", "YAYYYY CLICK");
                 Log.d("T", getArguments().get("name").toString());
-                Intent sendIntent = new Intent(getActivity().getBaseContext(), WatchToPhoneService.class);
-                sendIntent.putExtra("REP_NAME", getArguments().get("name").toString());
+                Intent sendIntent = new Intent(getActivity().getBaseContext(),
+                        WatchToPhoneService.class);
+                String repdata = getArguments().get("name").toString() + ";"
+                        + getArguments().get("party").toString() + ";"
+                        + getArguments().get("pic").toString() + ";"
+                        + getArguments().get("bioguide_id").toString() + ";"
+                        + getArguments().get("term_end").toString();
+                sendIntent.putExtra("REP_NAME", repdata);
                 getActivity().startService(sendIntent);
             }
         });

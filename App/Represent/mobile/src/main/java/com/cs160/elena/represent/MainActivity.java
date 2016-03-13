@@ -230,9 +230,6 @@ public class MainActivity extends Activity {
                     //update views with new data
                     //updateViewData(data);
                     madapter.notifyDataSetChanged();
-
-                    //update watch views with new data
-                    updateWatchData(mrepData, mvoteData, ctx);
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
@@ -298,7 +295,8 @@ public class MainActivity extends Activity {
         for (int i=0; i<data.size(); i++){
             HashMap<String,String> d = data.get(i);
             bundle.putString("REP"+String.valueOf(i), d.get("name")+";"
-                    +d.get("party")+";"+d.get("pic"));
+                    +d.get("party")+";"+d.get("pic")+";"
+                    +d.get("bioguide_id")+";"+d.get("term_end"));
         }
 
         bundle.putString("VOTE", voteData.get("obama")+";"+voteData.get("romney")+";"
@@ -372,6 +370,9 @@ public class MainActivity extends Activity {
                 dict.put("pic", url);
                 dict.put("tweet", result.data.get(0).text);
                 madapter.notifyDataSetChanged();
+
+                //update watch views with new data
+                updateWatchData(mrepData, mvoteData, ctx);
             }
 
             @Override

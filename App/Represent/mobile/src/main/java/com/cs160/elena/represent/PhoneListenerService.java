@@ -2,6 +2,7 @@ package com.cs160.elena.represent;
 
 import android.content.Context;
 import android.content.Intent;
+import android.os.Bundle;
 import android.util.Log;
 
 import com.google.android.gms.wearable.MessageEvent;
@@ -30,7 +31,16 @@ public class PhoneListenerService extends WearableListenerService {
 
             Intent intent = new Intent(context, DetailedActivity.class);
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-            intent.putExtra(MainActivity.EXTRA_MESSAGE, value);
+
+            Bundle bundle = new Bundle();
+            String[] data = value.split(";");
+            bundle.putString("name", data[0]);
+            bundle.putString("party", data[1]);
+            bundle.putString("pic", data[2]);
+            bundle.putString("bioguide_id", data[3]);
+            bundle.putString("term_end", data[4]);
+
+            intent.putExtra(MainActivity.EXTRA_MESSAGE, bundle);
             startActivity(intent);
         } else {
             super.onMessageReceived( messageEvent );

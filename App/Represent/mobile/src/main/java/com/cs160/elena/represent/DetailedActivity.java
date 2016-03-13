@@ -44,6 +44,8 @@ public class DetailedActivity extends AppCompatActivity {
         data.put("pic", extras.getString("pic"));
         data.put("party", extras.getString("party"));
 
+        Log.d("T", "Pic URL: " + extras.getString("pic"));
+
         updateData(data);
 
         ListView comms = (ListView) findViewById(R.id.rep_committees);

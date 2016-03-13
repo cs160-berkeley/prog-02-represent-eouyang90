@@ -29,7 +29,6 @@ public class MainActivity extends Activity {
         Bundle extras = intent.getExtras();
 
         if (extras != null) {
-            String[] parts = extras.getString("CAT_NAME").split(";");
             //TODO; add check here
             final GridViewPager pager = (GridViewPager) findViewById(R.id.pager);
             pager.setAdapter(new MainGridPagerAdapter(this, getFragmentManager(), extras));

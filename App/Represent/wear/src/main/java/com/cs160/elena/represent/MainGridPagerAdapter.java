@@ -13,12 +13,14 @@ import java.util.List;
 
 public class MainGridPagerAdapter extends FragmentGridPagerAdapter {
 
-    ArrayList<String> names;
-    ArrayList<String> parties;
-    ArrayList<String> imgs;
-    String voteObama;
-    String voteRomney;
-    String county;
+    private ArrayList<String> names;
+    private ArrayList<String> parties;
+    private ArrayList<String> imgs;
+    private ArrayList<String> bioguide_ids;
+    private ArrayList<String> term_ends;
+    private String voteObama;
+    private String voteRomney;
+    private String county;
 
     private final Context mContext;
     private List mRows;
@@ -30,10 +32,11 @@ public class MainGridPagerAdapter extends FragmentGridPagerAdapter {
         names = new ArrayList<String>();
         parties = new ArrayList<String>();
         imgs = new ArrayList<String>();
+        bioguide_ids = new ArrayList<String>();
+        term_ends = new ArrayList<String>();
 
         String[] reps = info.getString("CAT_NAME").split("\\$");
         String[] data = reps[0].split(";");
-        Log.d("T", data.toString());
         voteObama = data[0];
         voteRomney = data[1];
         county = data[2];
@@ -43,12 +46,15 @@ public class MainGridPagerAdapter extends FragmentGridPagerAdapter {
             names.add(data[0]);
             parties.add(data[1]);
             imgs.add(data[2]);
+            bioguide_ids.add(data[3]);
+            term_ends.add(data[4]);
+            Log.d("T", data[2]);
+
         }
     }
 
     @Override
     public Fragment getFragment(int row, int column) {
-        //return (MainCardFragment.create(names[row][column], parties[column]));
         if (column == names.size()){
             //return the 2012 vote view
             VoteCardFragment myCard = new VoteCardFragment();
@@ -65,6 +71,9 @@ public class MainGridPagerAdapter extends FragmentGridPagerAdapter {
         Bundle args = new Bundle();
         args.putString("name", names.get(column));
         args.putString("party", parties.get(column));
+        args.putString("pic", imgs.get(column));
+        args.putString("bioguide_id", bioguide_ids.get(column));
+        args.putString("term_end", term_ends.get(column));
         myCard.setArguments(args);
 
         //fm.beginTransaction().replace(R.id.container, myCard, "myCard").commit();

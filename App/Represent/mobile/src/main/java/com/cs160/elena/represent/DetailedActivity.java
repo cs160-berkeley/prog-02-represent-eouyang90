@@ -8,9 +8,8 @@ import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.widget.ArrayAdapter;
+import android.widget.ExpandableListView;
 import android.widget.ImageView;
-import android.widget.ListView;
 import android.widget.TextView;
 
 import com.squareup.picasso.Picasso;
@@ -21,14 +20,17 @@ import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 public class DetailedActivity extends AppCompatActivity {
     //there's not much interesting happening. when the buttons are pressed, they start
     //the PhoneToWatchService with the cat name passed in.
     private ArrayList<String> commValues;
     private ArrayList<String> billValues;
-    private ArrayAdapter<String> commAdapter;
-    private ArrayAdapter<String> billAdapter;
+    private ExpandableListAdapter listAdapter;
+    private ExpandableListView expListView;
+    private List<String> listDataHeader;
+    private HashMap<String, List<String>> listDataChild;
 
 
     @Override
@@ -48,19 +50,23 @@ public class DetailedActivity extends AppCompatActivity {
 
         updateData(data);
 
-        ListView comms = (ListView) findViewById(R.id.rep_committees);
-        ListView bills = (ListView) findViewById(R.id.rep_bills);
-
         commValues = new ArrayList<String>();
         billValues = new ArrayList<String>();
 
-        commAdapter = new ArrayAdapter<String>(this,
-                android.R.layout.simple_list_item_1, android.R.id.text1, commValues);
-        comms.setAdapter(commAdapter);
 
-        billAdapter = new ArrayAdapter<String>(this,
-                android.R.layout.simple_list_item_1, android.R.id.text1, billValues);
-        bills.setAdapter(billAdapter);
+        // get the listview
+        expListView = (ExpandableListView) findViewById(R.id.lvExp);
+        listDataHeader = new ArrayList<String>();
+        listDataHeader.add("Committees");
+        listDataHeader.add("Bills");
+        listDataChild = new HashMap<String, List<String>>();
+        listDataChild.put(listDataHeader.get(0), commValues);
+        listDataChild.put(listDataHeader.get(1), billValues);
+
+        listAdapter = new ExpandableListAdapter(this, listDataHeader, listDataChild);
+
+        // setting list adapter
+        expListView.setAdapter(listAdapter);
 
         String bioguide_id = extras.getString("bioguide_id");
         getCommitteeData(bioguide_id);
@@ -117,19 +123,20 @@ public class DetailedActivity extends AppCompatActivity {
                 //of onPostExecute(result) method.
                 try {
                     JSONArray jArray = output.getJSONArray("results");
+                    Log.d("T", "Output: " + jArray);
                     for (int i=0; i < jArray.length(); i++)
                     {
                         try {
                             JSONObject commJSON = jArray.getJSONObject(i);
                             // Pulling items from the array
-                            commAdapter.add(commJSON.getString("name"));
                             Log.d("T", "Added comm: " + commJSON.getString("name"));
+                            commValues.add(commJSON.getString("name"));
                         } catch (JSONException e) {
                             // Oops
                             Log.d("T", "JSONexception in getCommData");
                         }
                     }
-                    commAdapter.notifyDataSetChanged();
+                    listAdapter.notifyDataSetChanged();
 
                 } catch (JSONException e) {
                     e.printStackTrace();
@@ -155,14 +162,14 @@ public class DetailedActivity extends AppCompatActivity {
                         try {
                             JSONObject billJSON = jArray.getJSONObject(i);
                             // Pulling items from the array
-                            billAdapter.add(billJSON.getString("introduced_on") + ": "
+                            billValues.add(billJSON.getString("introduced_on") + ": "
                             + billJSON.getString("official_title"));
                         } catch (JSONException e) {
                             // Oops
                             Log.d("T", "JSONexception in getCommData");
                         }
                     }
-                    billAdapter.notifyDataSetChanged();
+                    listAdapter.notifyDataSetChanged();
 
                 } catch (JSONException e) {
                     e.printStackTrace();

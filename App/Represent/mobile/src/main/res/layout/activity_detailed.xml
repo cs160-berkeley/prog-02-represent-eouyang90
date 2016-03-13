@@ -1,40 +1,46 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="vertical" android:layout_width="match_parent"
     android:layout_height="match_parent">
-    <LinearLayout
+    <RelativeLayout
         android:orientation="vertical"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:weightSum="1"
-        android:background="@color/lightblue">
-        <LinearLayout
+        android:background="@color/darkblue">
+        <RelativeLayout
             android:orientation="horizontal"
             android:layout_width="match_parent"
-            android:layout_height="142dp"
-            android:weightSum="1">
-
-            <ImageView
-                android:layout_width="110dp"
-                android:layout_height="152dp"
+            android:layout_height="wrap_content"
+            android:weightSum="1"
+            android:id="@+id/rep_info">
+            <de.hdodenhof.circleimageview.CircleImageView
+                xmlns:app="http://schemas.android.com/apk/res-auto"
                 android:id="@+id/rep_img"
+                android:layout_width="150dp"
+                android:layout_height="150dp"
                 android:src="@drawable/dianne_feinstein"
-                android:layout_marginTop="0dp" />
-
-            <LinearLayout
+                app:civ_border_width="4dp"
+                app:civ_border_color="@color/black"
+                android:layout_marginTop="10dp"
+                android:layout_marginLeft="15dp"
+                android:layout_marginRight="5dp"/>
+            <RelativeLayout
                 android:orientation="vertical"
-                android:layout_width="145dp"
-                android:layout_height="142dp"
-                android:weightSum="1">
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingLeft="10dp"
+                android:weightSum="1"
+                android:id="@+id/right_portion"
+                android:layout_toEndOf="@+id/rep_img"
+                android:layout_centerVertical="true">
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:padding="2dp"
                     android:text="@string/rep_name"
                     android:textColor="@color/white"
-                    android:id="@+id/rep_name"
-                    android:layout_weight="0.06"
-                    android:layout_gravity="center_horizontal" />
+                    android:id="@+id/rep_name"/>
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -42,8 +48,7 @@
                     android:text="@string/rep_party"
                     android:textColor="@color/white"
                     android:id="@+id/rep_party"
-                    android:layout_weight="0.06"
-                    android:layout_gravity="center_horizontal" />
+                    android:layout_below="@+id/rep_name"/>
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -51,34 +56,13 @@
                     android:text="@string/rep_term"
                     android:textColor="@color/white"
                     android:id="@+id/rep_term"
-                    android:layout_weight="0.06"
-                    android:layout_gravity="center_horizontal" />
-            </LinearLayout>
-        </LinearLayout>
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:padding="2dp"
-            android:text="Committees"
-            android:textColor="@color/darkblue"
-            android:id="@+id/rep_comm"
-            android:layout_weight="0.06"
-            android:layout_gravity="center_horizontal" />
+                    android:layout_below="@id/rep_party"/>
+                </RelativeLayout>
+        </RelativeLayout>
         <ExpandableListView
             android:id="@+id/lvExp"
             android:layout_height="match_parent"
-            android:layout_width="match_parent"/>
-        <ListView
-            android:layout_width="wrap_content"
-            android:layout_height="178dp"
-            android:padding="2dp"
-            android:text="Committees"
-            android:id="@+id/rep_committees" />
-        <ListView
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:padding="2dp"
-            android:text="Bills"
-            android:id="@+id/rep_bills" />
-    </LinearLayout>
-</LinearLayout>
+            android:layout_width="match_parent"
+            android:layout_below="@id/rep_info"/>
+    </RelativeLayout>
+</RelativeLayout>

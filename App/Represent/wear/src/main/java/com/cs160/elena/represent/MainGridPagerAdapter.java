@@ -8,15 +8,14 @@ import android.os.Bundle;
 import android.support.wearable.view.FragmentGridPagerAdapter;
 import android.util.Log;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class MainGridPagerAdapter extends FragmentGridPagerAdapter {
 
-    String[][] names ={
-            { "", "", "" }
-    };
-    String[] parties ={"", "", ""};
-    String[] imgs ={"", "", "" };
+    ArrayList<String> names;
+    ArrayList<String> parties;
+    ArrayList<String> imgs;
     String voteObama;
     String voteRomney;
     String county;
@@ -28,20 +27,23 @@ public class MainGridPagerAdapter extends FragmentGridPagerAdapter {
     public MainGridPagerAdapter(Context ctx, FragmentManager fm, Bundle info) {
         super(fm);
         mContext = ctx;
-        fm = fm;
+        names = new ArrayList<String>();
+        parties = new ArrayList<String>();
+        imgs = new ArrayList<String>();
 
         String[] reps = info.getString("CAT_NAME").split("\\$");
-        for(int i=0; i<3;i++){
-            String[] data = reps[i].split(";");
-            names[0][i] = data[0];
-            parties[i] = data[1];
-            imgs[i] = data[2];
-        }
-        String[] data = reps[3].split(";");
+        String[] data = reps[0].split(";");
         Log.d("T", data.toString());
         voteObama = data[0];
         voteRomney = data[1];
         county = data[2];
+
+        for(int i=1; i<reps.length;i++){
+            data = reps[i].split(";");
+            names.add(data[0]);
+            parties.add(data[1]);
+            imgs.add(data[2]);
+        }
     }
 
     @Override
@@ -61,8 +63,8 @@ public class MainGridPagerAdapter extends FragmentGridPagerAdapter {
         }
         MyCard myCard = new MyCard();
         Bundle args = new Bundle();
-        args.putString("name", names[row][column]);
-        args.putString("party", parties[column]);
+        args.putString("name", names.get(column));
+        args.putString("party", parties.get(column));
         myCard.setArguments(args);
 
         //fm.beginTransaction().replace(R.id.container, myCard, "myCard").commit();
@@ -73,10 +75,13 @@ public class MainGridPagerAdapter extends FragmentGridPagerAdapter {
     @Override
     public Drawable getBackgroundForPage(int row, int column) {
         int id;
-        if (column == 3){
-            id = mContext.getResources().getIdentifier("people", "drawable", "com.cs160.elena.represent");
+        if (column == names.size()){
+            id = mContext.getResources().getIdentifier("people", "drawable",
+                    "com.cs160.elena.represent");
         } else {
-            id = mContext.getResources().getIdentifier(imgs[column], "drawable", "com.cs160.elena.represent");
+            //id = mContext.getResources().getIdentifier(imgs.get(column), "drawable",
+            id = mContext.getResources().getIdentifier("people", "drawable",
+                    "com.cs160.elena.represent");
         }
         return mContext.getResources().getDrawable(id, mContext.getTheme());
     }
@@ -88,7 +93,7 @@ public class MainGridPagerAdapter extends FragmentGridPagerAdapter {
 
     @Override
     public int getColumnCount(int row) {
-        return 4;
+        return names.size() + 1;
     }
 
 }

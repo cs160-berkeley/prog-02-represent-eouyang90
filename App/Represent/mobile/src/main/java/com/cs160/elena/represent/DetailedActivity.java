@@ -1,8 +1,11 @@
 package com.cs160.elena.represent;
 
+import android.content.Context;
 import android.content.Intent;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.ArrayAdapter;
@@ -10,11 +13,23 @@ import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import com.squareup.picasso.Picasso;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.util.ArrayList;
 import java.util.HashMap;
 
 public class DetailedActivity extends AppCompatActivity {
     //there's not much interesting happening. when the buttons are pressed, they start
     //the PhoneToWatchService with the cat name passed in.
+    private ArrayList<String> commValues;
+    private ArrayList<String> billValues;
+    private ArrayAdapter<String> commAdapter;
+    private ArrayAdapter<String> billAdapter;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -22,63 +37,48 @@ public class DetailedActivity extends AppCompatActivity {
         setContentView(R.layout.activity_detailed);
 
         Intent intent = getIntent();
-        String name = intent.getStringExtra(MainActivity.EXTRA_MESSAGE);
+        Bundle extras = (Bundle) intent.getExtras().get(RepAdapter.EXTRA_MESSAGE);
+        HashMap<String, String> data = new HashMap<String, String>();
+        data.put("name", extras.getString("name"));
+        data.put("term_end", extras.getString("term_end"));
+        data.put("pic", extras.getString("pic"));
+        data.put("party", extras.getString("party"));
 
-        TextView nameText = (TextView) findViewById(R.id.rep_name);
-        nameText.setText(name);
-
-        updateData(name);
+        updateData(data);
 
         ListView comms = (ListView) findViewById(R.id.rep_committees);
         ListView bills = (ListView) findViewById(R.id.rep_bills);
 
-        String[] commValues = new String[] { "Comm1 for " + name,
-                "Comm2 for " + name,
-                "Comm3 for " + name,
-        };
-        String[] billValues = new String[] { "Bill1 for " + name,
-                "Bill2 for " + name,
-                "Bill3 for " + name,
-        };
+        commValues = new ArrayList<String>();
+        billValues = new ArrayList<String>();
 
-        ArrayAdapter<String> adapter = new ArrayAdapter<String>(this,
+        commAdapter = new ArrayAdapter<String>(this,
                 android.R.layout.simple_list_item_1, android.R.id.text1, commValues);
-        comms.setAdapter(adapter);
+        comms.setAdapter(commAdapter);
 
-        ArrayAdapter<String> adapter2 = new ArrayAdapter<String>(this,
+        billAdapter = new ArrayAdapter<String>(this,
                 android.R.layout.simple_list_item_1, android.R.id.text1, billValues);
-        bills.setAdapter(adapter2);
+        bills.setAdapter(billAdapter);
+
+        String bioguide_id = extras.getString("bioguide_id");
+        getCommitteeData(bioguide_id);
+        getBillData(bioguide_id);
     }
 
-    public void updateData(String name){
-        HashMap<String,String> data = getData(name);
-
+    public void updateData(HashMap<String, String> data){
         TextView nameText = (TextView) findViewById(R.id.rep_name);
-        nameText.setText(name);
+        nameText.setText(data.get("name"));
         TextView partyText = (TextView) findViewById(R.id.rep_party);
         partyText.setText(data.get("party"));
         TextView termText = (TextView) findViewById(R.id.rep_term);
-        termText.setText(data.get("term"));
+        termText.setText(data.get("term_end"));
         int id = getResources().getIdentifier(data.get("pic"), "drawable", "com.cs160.elena.represent");
         ImageView img = (ImageView) findViewById(R.id.rep_img);
-        img.setImageResource(id);
-    }
-
-    public HashMap<String,String> getData(String name){
-        //TODO; Replace with similar code in MainActivity
-        HashMap<String,String> data = new HashMap<String,String>();
-        data.put("name", name);
-        data.put("party", "party for "+name);
-        data.put("term", "term for "+name);
-        if (name.contains("Dianne")){
-            data.put("pic", "dianne_feinstein2");
-        } else if (name.contains("Boxer")){
-            data.put("pic", "barbara_boxer");
-        } else {
-            data.put("pic", "barbara_lee");
-        }
-
-        return data;
+        Picasso
+                .with(this)
+                .load(data.get("pic"))
+                .fit() // will explain later
+                .into(img);
     }
 
     @Override
@@ -101,5 +101,71 @@ public class DetailedActivity extends AppCompatActivity {
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    public void getCommitteeData(String bioguide_id){
+        final Context ctx = this;
+        String serviceURL = "http://congress.api.sunlightfoundation.com/committees?member_ids="
+                    + bioguide_id + "&apikey=787f9b8c4dd245d58e796cbca7a3aff2";
+
+        AsyncTask<String, Void, JSONObject> asyncTask =new WebAsyncTask(new AsyncResponse(){
+            @Override
+            public void processFinish(JSONObject output){
+                //Here you will receive the result fired from async class
+                //of onPostExecute(result) method.
+                try {
+                    JSONArray jArray = output.getJSONArray("results");
+                    for (int i=0; i < jArray.length(); i++)
+                    {
+                        try {
+                            JSONObject commJSON = jArray.getJSONObject(i);
+                            // Pulling items from the array
+                            commAdapter.add(commJSON.getString("name"));
+                            Log.d("T", "Added comm: " + commJSON.getString("name"));
+                        } catch (JSONException e) {
+                            // Oops
+                            Log.d("T", "JSONexception in getCommData");
+                        }
+                    }
+                    commAdapter.notifyDataSetChanged();
+
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
+        }).execute(serviceURL);
+    }
+
+
+    public void getBillData(String bioguide_id) {
+        final Context ctx = this;
+        String serviceURL = "http://congress.api.sunlightfoundation.com/bills?sponsor_id="
+                                + bioguide_id + "&apikey=787f9b8c4dd245d58e796cbca7a3aff2";
+
+        AsyncTask<String, Void, JSONObject> asyncTask = new WebAsyncTask(new AsyncResponse() {
+            @Override
+            public void processFinish(JSONObject output) {
+                //Here you will receive the result fired from async class
+                //of onPostExecute(result) method.
+                try {
+                    JSONArray jArray = output.getJSONArray("results");
+                    for (int i = 0; i < jArray.length(); i++) {
+                        try {
+                            JSONObject billJSON = jArray.getJSONObject(i);
+                            // Pulling items from the array
+                            billAdapter.add(billJSON.getString("introduced_on") + ": "
+                            + billJSON.getString("official_title"));
+                        } catch (JSONException e) {
+                            // Oops
+                            Log.d("T", "JSONexception in getCommData");
+                        }
+                    }
+                    billAdapter.notifyDataSetChanged();
+
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
+        }).execute(serviceURL);
     }
 }

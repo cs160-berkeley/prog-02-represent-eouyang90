@@ -133,10 +133,10 @@ public class HomeActivity extends Activity implements
         btn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Log.d("T", "Latlon: " + mLatitude + mLongitude);
+                Log.d("T", "Latlon: " + mLatitude +","+ mLongitude);
 
                 Intent intent = new Intent(getBaseContext(), MainActivity.class);
-                intent.putExtra(EXTRA_MESSAGE, mLatitude + "," + mLongitude);
+                intent.putExtra(CUR_LOC, mLatitude + "," + mLongitude);
                 startActivity(intent);
             }
         });

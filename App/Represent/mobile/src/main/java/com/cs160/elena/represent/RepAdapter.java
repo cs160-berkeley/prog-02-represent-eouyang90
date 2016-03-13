@@ -2,6 +2,7 @@ package com.cs160.elena.represent;
 
 import android.content.Context;
 import android.content.Intent;
+import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -72,13 +73,23 @@ public class RepAdapter extends BaseAdapter {
 
         //Attaching onClickListener
         final View repRow2 = repRow;
+        final String bioguide_id = mrepData.get(pos).get("bioguide_id");
+        final String term_end = mrepData.get(pos).get("term_end");
+        final String name = mrepData.get(pos).get("name");
+        final String pic = mrepData.get(pos).get("pic");
+        final String party = mrepData.get(pos).get("party");
         updateButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                TextView text = (TextView) repRow2.findViewById(R.id.rep1_name);
-                String name = text.getText().toString();
                 Intent intent = new Intent(mContext, DetailedActivity.class);
-                intent.putExtra(EXTRA_MESSAGE, name);
+                Bundle bundle = new Bundle();
+                bundle.putString("bioguide_id", bioguide_id);
+                bundle.putString("term_end", term_end);
+                bundle.putString("name", name);
+                bundle.putString("pic", pic);
+                bundle.putString("party", party);
+
+                intent.putExtra(EXTRA_MESSAGE, bundle);
                 mContext.startActivity(intent);
             }
         });

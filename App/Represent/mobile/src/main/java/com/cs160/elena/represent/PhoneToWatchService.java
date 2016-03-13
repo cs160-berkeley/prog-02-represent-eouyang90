@@ -48,11 +48,13 @@ public class PhoneToWatchService extends Service {
         // which was passed over when we called startService
         Bundle extras = (Bundle) intent.getExtras().get(MainActivity.EXTRA_MESSAGE);
         //final String info = extras.getString(MainActivity.EXTRA_MESSAGE);
-        final String rep1 = extras.getString("REP1");
-        final String rep2 = extras.getString("REP2");
-        final String rep3 = extras.getString("REP3");
-        final String vote = extras.getString("VOTE");
-
+        String info = extras.getString("VOTE");
+        for (String key : extras.keySet()){
+            if (!key.equals("VOTE")){
+                info += "$" + extras.getString(key);
+            }
+        }
+        final String repString = info;
         final Service _this = this;
 
         // Send the message with the cat name
@@ -61,7 +63,7 @@ public class PhoneToWatchService extends Service {
             public void run() {
                 //first, connect to the apiclient
                 mApiClient.connect();
-                sendMessage("/REP_INFO", rep1 + "$" + rep2 + "$" + rep3 + "$" + vote);
+                sendMessage("/REP_INFO", repString);
                 //_this.stopSelf();
             }
         }).start();

@@ -48,15 +48,18 @@ public class MainActivity extends Activity {
         setContentView(R.layout.activity_main);
 
         Intent intent = getIntent();
-        String latlon = intent.getStringExtra(HomeActivity.EXTRA_MESSAGE);
+        if(intent.hasExtra(HomeActivity.CUR_LOC)){
+            String latlon = intent.getStringExtra(HomeActivity.CUR_LOC);
+            getLocData(latlon, true);
+        } else {
+            String latlon = intent.getStringExtra(HomeActivity.EXTRA_MESSAGE);
+            getLocData(latlon, false);
+        }
         //TODO; change so that it handles random zips?
-        if (latlon.equals(HomeActivity.CUR_LOC)){
+        //if (latlon.equals(HomeActivity.CUR_LOC)){
 //            int index = (int) Math.random()*zipcodes.length;
 //            zipcode = zipcodes[index];
-        }
-
-        //get location data from latlon
-        getLocData(latlon);
+        //}
     }
 
 
@@ -153,13 +156,22 @@ public class MainActivity extends Activity {
         }
     }
 
-    public void handleRepresentData(final HashMap<String, String> loc){
+    public void handleRepresentData(final HashMap<String, String> loc, boolean isCurLoc){
         final Context ctx = this;
         final String zipcode = loc.get("zipcode");
         final String state = loc.get("state");
         final String county = loc.get("county");
-        String serviceURL = "http://congress.api.sunlightfoundation.com/legislators/locate?"
-            + "zip=" + zipcode +"&apikey=787f9b8c4dd245d58e796cbca7a3aff2";
+        String serviceURL;
+        if (isCurLoc){
+            String lat = loc.get("latlon").split(",")[0];
+            String lon = loc.get("latlon").split(",")[1];
+            serviceURL = "http://congress.api.sunlightfoundation.com/legislators/locate?"
+                    + "latitude="+lat+"&longitude="+ lon
+                    +"&apikey=787f9b8c4dd245d58e796cbca7a3aff2";
+        } else {
+            serviceURL = "http://congress.api.sunlightfoundation.com/legislators/locate?"
+                    + "zip=" + zipcode + "&apikey=787f9b8c4dd245d58e796cbca7a3aff2";
+        }
 
         AsyncTask<String, Void, JSONObject> asyncTask =new WebAsyncTask(new AsyncResponse(){
 
@@ -185,6 +197,7 @@ public class MainActivity extends Activity {
                             dict.put("bioguide_id", repJSON.getString("bioguide_id"));
                             dict.put("term_end", repJSON.getString("term_end"));
                             dict.put("twitter_id", repJSON.getString("twitter_id"));
+                            dict.put("term_end", repJSON.getString("term_end"));
 
                             //TODO; temp holders
                             dict.put("tweet",
@@ -282,21 +295,21 @@ public class MainActivity extends Activity {
         Intent sendIntent = new Intent(ctx, PhoneToWatchService.class);
         //sendIntent.putExtra(EXTRA_MESSAGE, name);
         Bundle bundle = new Bundle();
-        HashMap<String,String> d = data.get(0);
-        bundle.putString("REP1", d.get("name")+";"+d.get("party")+";"+d.get("pic"));
-        d = data.get(1);
-        bundle.putString("REP2", d.get("name")+";"+d.get("party")+";"+d.get("pic"));
-        d = data.get(2);
-        bundle.putString("REP3", d.get("name")+";"+d.get("party")+";"+d.get("pic"));
-        d = voteData;
-        bundle.putString("VOTE", d.get("obama")+";"+d.get("romney")+";"+d.get("county"));
+        for (int i=0; i<data.size(); i++){
+            HashMap<String,String> d = data.get(i);
+            bundle.putString("REP"+String.valueOf(i), d.get("name")+";"
+                    +d.get("party")+";"+d.get("pic"));
+        }
+
+        bundle.putString("VOTE", voteData.get("obama")+";"+voteData.get("romney")+";"
+                + voteData.get("county"));
 
         sendIntent.putExtra(EXTRA_MESSAGE,bundle);
 
         startService(sendIntent);
     }
 
-    public void getLocData(final String latlon){
+    public void getLocData(final String latlon, final boolean isCurLoc){
         String serviceURL = "https://maps.googleapis.com/maps/api/geocode/json?latlng="
                 + latlon +"&key=AIzaSyAk26JXUjFkV_tGwDPEYwIecxzYOlC3ves";
         AsyncTask<String, Void, JSONObject> asyncTask =new WebAsyncTask(new AsyncResponse(){
@@ -331,7 +344,7 @@ public class MainActivity extends Activity {
                     }
 
                     //TODO; update with correct location vals
-                    handleRepresentData(data);
+                    handleRepresentData(data, isCurLoc);
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }

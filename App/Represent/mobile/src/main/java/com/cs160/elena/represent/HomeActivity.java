@@ -24,15 +24,24 @@ import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.wearable.Wearable;
+import com.twitter.sdk.android.Twitter;
+import com.twitter.sdk.android.core.TwitterAuthConfig;
 
 import java.io.IOException;
 import java.util.List;
+
+import io.fabric.sdk.android.Fabric;
 
 
 public class HomeActivity extends Activity implements
         GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener,
         LocationListener{
+
+    // Note: Your consumer key and secret should be obfuscated in your source code before shipping.
+    private static final String TWITTER_KEY = "GJI7403eVcp6kIdjyjnRNkp4b";
+    private static final String TWITTER_SECRET = "YqjuUcEvXwAli2nZHc7P8HQd8VE5AfZu2YEBNyawOvc1UCLCGb";
+
     //there's not much interesting happening. when the buttons are pressed, they start
     //the PhoneToWatchService with the cat name passed in.
     public final static String EXTRA_MESSAGE = "com.cs160.represent.HomeActivity.ZIPCODE";
@@ -50,6 +59,9 @@ public class HomeActivity extends Activity implements
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        TwitterAuthConfig authConfig = new TwitterAuthConfig(TWITTER_KEY, TWITTER_SECRET);
+        Fabric.with(this, new Twitter(authConfig));
+//        Fabric.with(this, new Crashlytics());
         setContentView(R.layout.activity_home);
 
         // Create an instance of GoogleAPIClient.

@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical" android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="142dp"
+        android:weightSum="1"
+        android:id="@+id/rep1"
+        android:background="@color/darkblue"
+        android:layout_weight="0.33">
+        <LinearLayout
+            android:layout_width="141dp"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <ImageView
+                android:layout_width="73dp"
+                android:layout_height="101dp"
+                android:id="@+id/rep1_img"
+                android:src="@drawable/dianne_feinstein"
+                android:layout_marginTop="0dp" />
+
+            <Button
+                android:layout_width="118dp"
+                android:layout_height="wrap_content"
+                android:text="More info"
+                android:id="@+id/rep1_btn"/>
+
+        </LinearLayout>
+        <LinearLayout
+            android:orientation="vertical"
+            android:layout_width="match_parent"
+            android:layout_height="142dp"
+            android:weightSum="1">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:padding="2dp"
+                android:text="@string/rep1_tweet"
+                android:textColor="@color/white"
+                android:id="@+id/rep1_tweet"
+                android:layout_weight="0.06"
+                android:background="@color/blue"/>
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:padding="2dp"
+                android:text="@string/rep1_name"
+                android:textColor="@color/white"
+                android:id="@+id/rep1_name"
+                android:layout_weight="0.06" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:padding="2dp"
+                android:text="@string/rep1_party"
+                android:textColor="@color/white"
+                android:id="@+id/rep1_party"
+                android:layout_weight="0.06" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:padding="2dp"
+                android:text="@string/rep1_email"
+                android:textColor="@color/lightblue"
+                android:id="@+id/rep1_email"
+                android:layout_weight="0.06" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:padding="2dp"
+                android:text="@string/rep1_site"
+                android:textColor="@color/lightblue"
+                android:id="@+id/rep1_site"
+                android:layout_weight="0.06" />
+        </LinearLayout>
+    </LinearLayout>
+</LinearLayout>

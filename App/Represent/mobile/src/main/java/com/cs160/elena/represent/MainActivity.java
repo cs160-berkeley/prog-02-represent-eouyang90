@@ -8,10 +8,16 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
 import android.widget.Button;
-import android.widget.ImageView;
-import android.widget.TextView;
+import android.widget.ListView;
+
+import com.twitter.sdk.android.core.Callback;
+import com.twitter.sdk.android.core.Result;
+import com.twitter.sdk.android.core.TwitterApiClient;
+import com.twitter.sdk.android.core.TwitterCore;
+import com.twitter.sdk.android.core.TwitterException;
+import com.twitter.sdk.android.core.models.Tweet;
+import com.twitter.sdk.android.core.services.StatusesService;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -21,9 +27,12 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 public class MainActivity extends Activity {
     public final static String EXTRA_MESSAGE = "com.cs160.represent.MainActivity.RepInfo";
+    private RepAdapter madapter;
+    private ListView mrepListView;
 
     private Button mupdateButton1;
     private Button mupdateButton2;
@@ -47,42 +56,6 @@ public class MainActivity extends Activity {
 
         //get location data from latlon
         getLocData(latlon);
-
-        mupdateButton1 = (Button) findViewById(R.id.rep1_btn);
-        mupdateButton2 = (Button) findViewById(R.id.rep2_btn);
-        mupdateButton3 = (Button) findViewById(R.id.rep3_btn);
-
-        mupdateButton1.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                TextView text = (TextView) findViewById(R.id.rep1_name);
-                String name = text.getText().toString();
-                Intent intent = new Intent(getBaseContext(), DetailedActivity.class);
-                intent.putExtra(EXTRA_MESSAGE, name);
-                startActivity(intent);
-            }
-        });
-        mupdateButton2.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                TextView text = (TextView) findViewById(R.id.rep2_name);
-                String name = text.getText().toString();
-
-                Intent intent = new Intent(getBaseContext(), DetailedActivity.class);
-                intent.putExtra(EXTRA_MESSAGE, name);
-                startActivity(intent);
-            }
-        });
-        mupdateButton3.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                TextView text = (TextView) findViewById(R.id.rep3_name);
-                String name = text.getText().toString();
-                Intent intent = new Intent(getBaseContext(), DetailedActivity.class);
-                intent.putExtra(EXTRA_MESSAGE, name);
-                startActivity(intent);
-            }
-        });
     }
 
 
@@ -109,7 +82,6 @@ public class MainActivity extends Activity {
     }
 
     public HashMap<String, String> voteData(String county, String state, String zipcode){
-
         String serviceURL = "http://congress.api.sunlightfoundation.com/legislators/locate?"
                 + "zip=" + zipcode +"&apikey=787f9b8c4dd245d58e796cbca7a3aff2";
         AsyncTask<String, Void, JSONObject> asyncTask =new WebAsyncTask(new AsyncResponse(){
@@ -211,24 +183,39 @@ public class MainActivity extends Activity {
                             dict.put("site", repJSON.getString("website"));
                             dict.put("bioguide_id", repJSON.getString("bioguide_id"));
                             dict.put("term_end", repJSON.getString("term_end"));
+                            dict.put("twitter_id", repJSON.getString("twitter_id"));
 
                             //TODO; temp holders
-                            dict.put("tweet","Speaking on the Senate floor now about the Supreme Court vacancy");
-                            dict.put("pic", "dianne_feinstein2");
+                            dict.put("tweet",
+                                    "Tweet");
+                            dict.put("pic",
+                                    "http://www.nanigans.com/wp-content/uploads/2014/07/Generic-Avatar.png");
 
+                            data.add(dict);
                         } catch (JSONException e) {
                             // Oops
                             Log.d("T", "JSONexception in handleRepData");
                         }
-                        data.add(dict);
+                    }
+                    mrepData = data;
+                    //update tweet data
+                    for (int i=0; i< data.size(); i++){
+                        handleTweet(i, ctx);
                     }
 
                     //get vote data
                     mvoteData = voteData(county, state, zipcode);
 
+                    //Set up listview
+                    mrepListView = (ListView) findViewById(R.id.listView);
+                    //Create the Adapter
+                    madapter = new RepAdapter(ctx, mrepData);
+                    //Set the Adapter
+                    mrepListView.setAdapter(madapter);
+
                     //update views with new data
-                    mrepData = data;
-                    updateViewData(data);
+                    //updateViewData(data);
+                    madapter.notifyDataSetChanged();
 
                     //update watch views with new data
                     updateWatchData(mrepData, mvoteData, ctx);
@@ -242,51 +229,51 @@ public class MainActivity extends Activity {
     public void updateViewData(ArrayList<HashMap<String, String>> data){
         //TODO; Figure out how to do with list views later
 
-        TextView tweet = (TextView) findViewById(R.id.rep1_tweet);
-        tweet.setText(data.get(0).get("tweet"));
-        tweet = (TextView) findViewById(R.id.rep2_tweet);
-        tweet.setText(data.get(1).get("tweet"));
-        tweet = (TextView) findViewById(R.id.rep3_tweet);
-        tweet.setText(data.get(2).get("tweet"));
-
-        TextView name = (TextView) findViewById(R.id.rep1_name);
-        name.setText(data.get(0).get("name"));
-        name = (TextView) findViewById(R.id.rep2_name);
-        name.setText(data.get(1).get("name"));
-        name = (TextView) findViewById(R.id.rep3_name);
-        name.setText(data.get(2).get("name"));
-
-        TextView party = (TextView) findViewById(R.id.rep1_party);
-        party.setText(data.get(0).get("party"));
-        party = (TextView) findViewById(R.id.rep2_party);
-        party.setText(data.get(1).get("party"));
-        party = (TextView) findViewById(R.id.rep3_party);
-        party.setText(data.get(2).get("party"));
-
-        TextView email = (TextView) findViewById(R.id.rep1_email);
-        email.setText(data.get(0).get("email"));
-        email = (TextView) findViewById(R.id.rep2_email);
-        email.setText(data.get(1).get("email"));
-        email = (TextView) findViewById(R.id.rep3_email);
-        email.setText(data.get(2).get("email"));
-
-        TextView site = (TextView) findViewById(R.id.rep1_site);
-        site.setText(data.get(0).get("site"));
-        site = (TextView) findViewById(R.id.rep2_site);
-        site.setText(data.get(1).get("site"));
-        site = (TextView) findViewById(R.id.rep3_site);
-        site.setText(data.get(2).get("site"));
-
-
-        int id = getResources().getIdentifier(data.get(0).get("pic"), "drawable", "com.cs160.elena.represent");
-        ImageView img = (ImageView) findViewById(R.id.rep1_img);
-        img.setImageResource(id);
-        id = getResources().getIdentifier(data.get(1).get("pic"), "drawable", "com.cs160.elena.represent");
-        img = (ImageView) findViewById(R.id.rep2_img);
-        img.setImageResource(id);
-        id = getResources().getIdentifier(data.get(2).get("pic"), "drawable", "com.cs160.elena.represent");
-        img = (ImageView) findViewById(R.id.rep3_img);
-        img.setImageResource(id);
+//        TextView tweet = (TextView) findViewById(R.id.rep1_tweet);
+//        tweet.setText(data.get(0).get("tweet"));
+//        tweet = (TextView) findViewById(R.id.rep2_tweet);
+//        tweet.setText(data.get(1).get("tweet"));
+//        tweet = (TextView) findViewById(R.id.rep3_tweet);
+//        tweet.setText(data.get(2).get("tweet"));
+//
+//        TextView name = (TextView) findViewById(R.id.rep1_name);
+//        name.setText(data.get(0).get("name"));
+//        name = (TextView) findViewById(R.id.rep2_name);
+//        name.setText(data.get(1).get("name"));
+//        name = (TextView) findViewById(R.id.rep3_name);
+//        name.setText(data.get(2).get("name"));
+//
+//        TextView party = (TextView) findViewById(R.id.rep1_party);
+//        party.setText(data.get(0).get("party"));
+//        party = (TextView) findViewById(R.id.rep2_party);
+//        party.setText(data.get(1).get("party"));
+//        party = (TextView) findViewById(R.id.rep3_party);
+//        party.setText(data.get(2).get("party"));
+//
+//        TextView email = (TextView) findViewById(R.id.rep1_email);
+//        email.setText(data.get(0).get("email"));
+//        email = (TextView) findViewById(R.id.rep2_email);
+//        email.setText(data.get(1).get("email"));
+//        email = (TextView) findViewById(R.id.rep3_email);
+//        email.setText(data.get(2).get("email"));
+//
+//        TextView site = (TextView) findViewById(R.id.rep1_site);
+//        site.setText(data.get(0).get("site"));
+//        site = (TextView) findViewById(R.id.rep2_site);
+//        site.setText(data.get(1).get("site"));
+//        site = (TextView) findViewById(R.id.rep3_site);
+//        site.setText(data.get(2).get("site"));
+//
+//
+//        int id = getResources().getIdentifier(data.get(0).get("pic"), "drawable", "com.cs160.elena.represent");
+//        ImageView img = (ImageView) findViewById(R.id.rep1_img);
+//        img.setImageResource(id);
+//        id = getResources().getIdentifier(data.get(1).get("pic"), "drawable", "com.cs160.elena.represent");
+//        img = (ImageView) findViewById(R.id.rep2_img);
+//        img.setImageResource(id);
+//        id = getResources().getIdentifier(data.get(2).get("pic"), "drawable", "com.cs160.elena.represent");
+//        img = (ImageView) findViewById(R.id.rep3_img);
+//        img.setImageResource(id);
     }
 
     public void updateWatchData(ArrayList<HashMap<String, String>> data,
@@ -312,7 +299,6 @@ public class MainActivity extends Activity {
         String serviceURL = "https://maps.googleapis.com/maps/api/geocode/json?latlng="
                 + latlon +"&key=AIzaSyAk26JXUjFkV_tGwDPEYwIecxzYOlC3ves";
         AsyncTask<String, Void, JSONObject> asyncTask =new WebAsyncTask(new AsyncResponse(){
-
             @Override
             public void processFinish(JSONObject output){
                 //Here you will receive the result fired from async class
@@ -350,5 +336,41 @@ public class MainActivity extends Activity {
                 }
             }
         }).execute(serviceURL);
+    }
+
+    protected void handleTweet(int index, Context ctx2){
+        final HashMap<String, String> dict = mrepData.get(index);
+        String twitter_id = dict.get("twitter_id");
+        Log.d("T", "Tweet_id: " + twitter_id);
+        // TODO: Base this Tweet ID on some data from elsewhere in your app
+        final Context ctx = ctx2;
+        TwitterApiClient taClient = TwitterCore.getInstance().getApiClient();
+        StatusesService myStatService = taClient.getStatusesService();
+        myStatService.userTimeline(null,twitter_id,null,new Long(1),null,null,null,null,null,
+                new Callback<List<Tweet>>() {
+            @Override
+            public void success(Result<List<Tweet>> result) {
+                Log.d("T", "Successful handling of tweet!");
+                Log.d("T",result.data.get(0).text);
+                Log.d("T", result.data.get(0).user.profileImageUrl);
+
+                //edit imageUrl so it's not tiny
+                String url = result.data.get(0).user.profileImageUrl;
+                url = url.replace("_normal", "");
+
+                dict.put("pic", url);
+                dict.put("tweet", result.data.get(0).text);
+                madapter.notifyDataSetChanged();
+//                ImageView imageView = (ImageView) findViewById(R.id.rep1_img);
+//                Picasso.with(ctx).load(url).into(imageView);
+//                TextView tweet = (TextView) findViewById(R.id.rep1_tweet);
+//                tweet.setText(result.data.get(0).text);
+            }
+
+            @Override
+            public void failure(TwitterException exception) {
+                Log.d("TwitterKit", "Load Tweet failure", exception);
+            }
+        });
     }
 }

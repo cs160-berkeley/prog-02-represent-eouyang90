@@ -9,8 +9,17 @@ import android.util.Log;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import com.crashlytics.android.Crashlytics;
+import com.twitter.sdk.android.Twitter;
+import com.twitter.sdk.android.core.TwitterAuthConfig;
+import io.fabric.sdk.android.Fabric;
 
 public class MainActivity extends Activity {
+
+    // Note: Your consumer key and secret should be obfuscated in your source code before shipping.
+    private static final String TWITTER_KEY = "GJI7403eVcp6kIdjyjnRNkp4b";
+    private static final String TWITTER_SECRET = "YqjuUcEvXwAli2nZHc7P8HQd8VE5AfZu2YEBNyawOvc1UCLCGb";
+
 
     private TextView mTextView;
     private Button mFeedBtn;
@@ -18,6 +27,8 @@ public class MainActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        TwitterAuthConfig authConfig = new TwitterAuthConfig(TWITTER_KEY, TWITTER_SECRET);
+        Fabric.with(this, new Twitter(authConfig), new Crashlytics());
         setContentView(R.layout.activity_main);
 
         //Attempt to setup 2d Picker

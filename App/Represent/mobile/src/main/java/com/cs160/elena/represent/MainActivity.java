@@ -14,6 +14,7 @@ import android.widget.ListView;
 import com.twitter.sdk.android.core.Callback;
 import com.twitter.sdk.android.core.Result;
 import com.twitter.sdk.android.core.TwitterApiClient;
+import com.twitter.sdk.android.core.TwitterApiException;
 import com.twitter.sdk.android.core.TwitterCore;
 import com.twitter.sdk.android.core.TwitterException;
 import com.twitter.sdk.android.core.models.Tweet;
@@ -351,9 +352,6 @@ public class MainActivity extends Activity {
             @Override
             public void success(Result<List<Tweet>> result) {
                 Log.d("T", "Successful handling of tweet!");
-                Log.d("T",result.data.get(0).text);
-                Log.d("T", result.data.get(0).user.profileImageUrl);
-
                 //edit imageUrl so it's not tiny
                 String url = result.data.get(0).user.profileImageUrl;
                 url = url.replace("_normal", "");
@@ -361,15 +359,12 @@ public class MainActivity extends Activity {
                 dict.put("pic", url);
                 dict.put("tweet", result.data.get(0).text);
                 madapter.notifyDataSetChanged();
-//                ImageView imageView = (ImageView) findViewById(R.id.rep1_img);
-//                Picasso.with(ctx).load(url).into(imageView);
-//                TextView tweet = (TextView) findViewById(R.id.rep1_tweet);
-//                tweet.setText(result.data.get(0).text);
             }
 
             @Override
             public void failure(TwitterException exception) {
                 Log.d("TwitterKit", "Load Tweet failure", exception);
+                Log.d("T", ((TwitterApiException) exception).getErrorMessage());
             }
         });
     }

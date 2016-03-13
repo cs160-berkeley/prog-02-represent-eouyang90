@@ -25,7 +25,15 @@ import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.wearable.Wearable;
 import com.twitter.sdk.android.Twitter;
+import com.twitter.sdk.android.core.AppSession;
+import com.twitter.sdk.android.core.Callback;
+import com.twitter.sdk.android.core.GuestCallback;
+import com.twitter.sdk.android.core.Result;
+import com.twitter.sdk.android.core.TwitterApiClient;
 import com.twitter.sdk.android.core.TwitterAuthConfig;
+import com.twitter.sdk.android.core.TwitterCore;
+import com.twitter.sdk.android.core.TwitterException;
+import com.twitter.sdk.android.core.models.Search;
 
 import java.io.IOException;
 import java.util.List;
@@ -39,8 +47,8 @@ public class HomeActivity extends Activity implements
         LocationListener{
 
     // Note: Your consumer key and secret should be obfuscated in your source code before shipping.
-    private static final String TWITTER_KEY = "GJI7403eVcp6kIdjyjnRNkp4b";
-    private static final String TWITTER_SECRET = "YqjuUcEvXwAli2nZHc7P8HQd8VE5AfZu2YEBNyawOvc1UCLCGb";
+    private static final String TWITTER_KEY = "3Z5yxlK6upktYtGIdUINzDwKv";
+    private static final String TWITTER_SECRET = "QlMsuWWFvsarj2evHQ90jASXuM5eiqQJ0Ly5ZYViw8fMZH7rWv";
 
     //there's not much interesting happening. when the buttons are pressed, they start
     //the PhoneToWatchService with the cat name passed in.
@@ -62,6 +70,36 @@ public class HomeActivity extends Activity implements
         TwitterAuthConfig authConfig = new TwitterAuthConfig(TWITTER_KEY, TWITTER_SECRET);
         Fabric.with(this, new Twitter(authConfig));
 //        Fabric.with(this, new Crashlytics());
+
+        //handle expired guest authentication token?
+        TwitterCore.getInstance().logInGuest(new Callback() {
+            @Override
+            public void success(Result result) {
+                final AppSession guestAppSession = (AppSession) result.data;
+
+                TwitterApiClient twitterApiClient = TwitterCore.getInstance().getApiClient(guestAppSession);
+                twitterApiClient.getSearchService().tweets("#fabric", null, null, null, null, 50, null, null, null, true, new GuestCallback<>(new Callback<Search>() {
+                    @Override
+                    public void success(Result<Search> result) {
+                        // use result tweets
+                    }
+
+                    @Override
+                    public void failure(TwitterException exception) {
+                        // handle exceptions
+                    }
+                }));
+            }
+
+            @Override
+            public void failure(TwitterException exception) {
+                // unable to get an AppSession with guest auth
+                exception.printStackTrace();
+                Log.d("T", "Unable to get AppSession with guest auth");
+            }
+        });
+
+
         setContentView(R.layout.activity_home);
 
         // Create an instance of GoogleAPIClient.

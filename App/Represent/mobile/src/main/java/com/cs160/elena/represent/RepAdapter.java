@@ -101,10 +101,14 @@ public class RepAdapter extends BaseAdapter {
             repRow.findViewById(R.id.rep1).setBackgroundResource(R.color.darkblue);
             tweetView.setBackgroundResource(R.drawable.round_blue);
             partyView.setText("Democrat");
-        } else {
+        } else if (mrepData.get(pos).get("party").equals("R")) {
             repRow.findViewById(R.id.rep1).setBackgroundResource(R.color.darkred);
             tweetView.setBackgroundResource(R.drawable.round_red);
             partyView.setText("Republican");
+        } else {
+            repRow.findViewById(R.id.rep1).setBackgroundResource(R.color.purple);
+            tweetView.setBackgroundResource(R.drawable.round_red);
+            partyView.setText(mrepData.get(pos).get("party"));
         }
 
 

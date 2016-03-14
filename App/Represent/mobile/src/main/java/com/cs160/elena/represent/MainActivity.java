@@ -300,7 +300,7 @@ public class MainActivity extends Activity {
         }
 
         bundle.putString("VOTE", voteData.get("obama")+";"+voteData.get("romney")+";"
-                + voteData.get("county"));
+                + voteData.get("county") + ";" + voteData.get("state"));
 
         sendIntent.putExtra(EXTRA_MESSAGE,bundle);
 

@@ -10,6 +10,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.ExpandableListView;
 import android.widget.ImageView;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.squareup.picasso.Picasso;
@@ -77,7 +78,22 @@ public class DetailedActivity extends AppCompatActivity {
         TextView nameText = (TextView) findViewById(R.id.rep_name);
         nameText.setText(data.get("name"));
         TextView partyText = (TextView) findViewById(R.id.rep_party);
-        partyText.setText(data.get("party"));
+        if (data.get("party").equals("D")){
+            RelativeLayout layout = (RelativeLayout) findViewById(R.id.rep_info);
+            layout.setBackgroundResource(R.color.darkblue);
+            partyText.setText("Democrat");
+        } else if (data.get("party").equals("R")){
+            RelativeLayout layout = (RelativeLayout) findViewById(R.id.rep_info);
+            layout.setBackgroundResource(R.color.darkred);
+            partyText.setText("Republican");
+        } else {
+            RelativeLayout layout = (RelativeLayout) findViewById(R.id.rep_info);
+            layout.setBackgroundResource(R.color.purple);
+            partyText.setText(data.get("party"));
+        }
+
+
+
         TextView termText = (TextView) findViewById(R.id.rep_term);
         termText.setText(data.get("term_end"));
         int id = getResources().getIdentifier(data.get("pic"), "drawable", "com.cs160.elena.represent");

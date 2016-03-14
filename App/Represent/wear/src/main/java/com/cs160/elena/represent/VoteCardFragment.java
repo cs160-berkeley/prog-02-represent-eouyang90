@@ -5,26 +5,35 @@ import android.support.wearable.view.CardFragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 /**
  * Created by elena on 3/4/16.
  */
 public class VoteCardFragment extends CardFragment {
-    TextView mTextView1, mTextView2, mTextView3;
+    TextView ostatView, rstatView, countyView, stateView;
 
     @Override
     public View onCreateContentView(LayoutInflater inflater, ViewGroup container,
                                     Bundle savedInstanceState) {
         View root = inflater.inflate(R.layout.fragment_vote, container, false);
 
-        mTextView1 = (TextView) root.findViewById(R.id.textView1);
-        mTextView2 = (TextView) root.findViewById(R.id.textView2);
-        mTextView3 = (TextView) root.findViewById(R.id.textView3);
+        ostatView = (TextView) root.findViewById(R.id.obama_stat);
+        rstatView = (TextView) root.findViewById(R.id.romney_stat);
+        countyView = (TextView) root.findViewById(R.id.county);
+        stateView = (TextView) root.findViewById(R.id.state);
 
-        mTextView1.setText("Obama: " + getArguments().getString("obama")+"%");
-        mTextView2.setText("Romney: " + getArguments().getString("romney")+"%");
-        mTextView3.setText("County: " + getArguments().getString("county"));
+        ostatView.setText(getArguments().getString("obama")+"%");
+        rstatView.setText(getArguments().getString("romney")+"%");
+        countyView.setText(getArguments().getString("county"));
+        stateView.setText(getArguments().getString("state"));
+
+        final float scale = getActivity().getResources().getDisplayMetrics().density;
+        int w = (int) (Double.valueOf(getArguments().getString("obama")) * scale + 0.5f);
+        int l = (int) (20 * scale + 0.5f);
+        TextView obar = (TextView) root.findViewById(R.id.obama_bar);
+        obar.setLayoutParams(new RelativeLayout.LayoutParams(w,l));
 
         return root;
     }

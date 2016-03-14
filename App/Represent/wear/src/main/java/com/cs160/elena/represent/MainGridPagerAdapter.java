@@ -21,6 +21,7 @@ public class MainGridPagerAdapter extends FragmentGridPagerAdapter {
     private String voteObama;
     private String voteRomney;
     private String county;
+    private String state;
 
     private final Context mContext;
     private List mRows;
@@ -40,6 +41,7 @@ public class MainGridPagerAdapter extends FragmentGridPagerAdapter {
         voteObama = data[0];
         voteRomney = data[1];
         county = data[2];
+        state = data[3];
 
         for(int i=1; i<reps.length;i++){
             data = reps[i].split(";");
@@ -62,6 +64,7 @@ public class MainGridPagerAdapter extends FragmentGridPagerAdapter {
             args.putString("obama", voteObama);
             args.putString("romney", voteRomney);
             args.putString("county", county);
+            args.putString("state", state);
             Log.d("T", "Vote View" + voteRomney);
             Log.d("T", "Vote  " + county);
             myCard.setArguments(args);
@@ -85,12 +88,20 @@ public class MainGridPagerAdapter extends FragmentGridPagerAdapter {
     public Drawable getBackgroundForPage(int row, int column) {
         int id;
         if (column == names.size()){
-            id = mContext.getResources().getIdentifier("people", "drawable",
+            id = mContext.getResources().getIdentifier("us_flag", "drawable",
                     "com.cs160.elena.represent");
         } else {
             //id = mContext.getResources().getIdentifier(imgs.get(column), "drawable",
-            id = mContext.getResources().getIdentifier("people", "drawable",
-                    "com.cs160.elena.represent");
+            if(parties.get(column).equals("D")){
+                id = mContext.getResources().getIdentifier("dem_party", "drawable",
+                        "com.cs160.elena.represent");
+            } else if (parties.get(column).equals("R")){
+                id = mContext.getResources().getIdentifier("rep_party", "drawable",
+                        "com.cs160.elena.represent");
+            } else {
+                id = mContext.getResources().getIdentifier("us_flag", "drawable",
+                        "com.cs160.elena.represent");
+            }
         }
         return mContext.getResources().getDrawable(id, mContext.getTheme());
     }

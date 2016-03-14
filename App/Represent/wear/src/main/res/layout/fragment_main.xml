@@ -4,10 +4,11 @@
     android:layout_height="match_parent"
     android:background="@color/transparent"
     android:orientation="vertical">
-    <Button
+    <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Represent!"
+        android:textColor="@color/black"
         android:id="@+id/feed_btn"
         android:layout_gravity="center_horizontal" />
 

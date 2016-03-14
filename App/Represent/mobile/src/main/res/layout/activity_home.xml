@@ -1,19 +1,26 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="vertical" android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/white">
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginTop="25dp"
+        android:layout_marginBottom="20dp"
         android:text="Represent!"
-        android:textAppearance="?android:attr/textAppearanceLarge"
-        android:layout_gravity="center_horizontal" />
+        android:textSize="40dp"
+        android:textColor="@color/purple"
+        android:typeface="serif"
+        android:id="@+id/represent"
+        android:layout_centerHorizontal="true" />
     <LinearLayout
         android:orientation="horizontal"
+        android:id="@+id/edit_txt"
         android:layout_width="129dp"
         android:layout_height="wrap_content"
-        android:layout_gravity="center_horizontal">
+        android:layout_centerHorizontal="true"
+        android:layout_below="@+id/represent">
 
         <EditText
             android:layout_width="100dp"
@@ -30,26 +37,34 @@
             android:layout_gravity="center_horizontal" />
     </LinearLayout>
     <TextView
+        android:id="@+id/txt"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Enter your zip code"
-        android:layout_gravity="center_horizontal" />
+        android:layout_centerHorizontal="true"
+        android:layout_below="@+id/edit_txt"/>
     <TextView
+        android:id="@+id/txt2"
+        android:layout_marginTop="8dp"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="OR"
-        android:layout_gravity="center_horizontal" />
+        android:layout_centerHorizontal="true"
+        android:layout_below="@+id/txt"/>
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
         android:text="Use Current Location"
-        android:layout_gravity="center_horizontal"
-        android:id="@+id/curLoc"/>
+        android:textColor="@color/blue"
+        android:layout_centerHorizontal="true"
+        android:id="@+id/curLoc"
+        android:layout_below="@+id/txt2"/>
     <ImageView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:id="@+id/fred_img"
+        android:layout_marginTop="38dp"
+        android:id="@+id/people_img"
         android:src="@drawable/people"
-        android:layout_alignParentStart="true"
-        android:layout_marginTop="31dp" />
-</LinearLayout>
+        android:layout_below="@+id/curLoc"/>
+</RelativeLayout>

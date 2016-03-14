@@ -61,7 +61,11 @@ public class WatchToPhoneService extends Service implements GoogleApiClient.Conn
                         Log.d("T", mBundle.toString());
                         //when we find a connected node, we populate the list declared above
                         //finally, we can send a message
-                        sendMessage("/send_toast", mBundle.getString("REP_NAME"));
+                        if (mBundle.containsKey("REP_NAME")) {
+                            sendMessage("/send_toast", mBundle.getString("REP_NAME"));
+                        } else {
+                            sendMessage("/send_sensor", mBundle.getString("SENSOR_CHANGED"));
+                        }
                         Log.d("T", "sent");
                         _this.stopSelf();
                     }

@@ -87,22 +87,24 @@ public class MainGridPagerAdapter extends FragmentGridPagerAdapter {
     @Override
     public Drawable getBackgroundForPage(int row, int column) {
         int id;
-        if (column == names.size()){
-            id = mContext.getResources().getIdentifier("us_flag", "drawable",
-                    "com.cs160.elena.represent");
-        } else {
-            //id = mContext.getResources().getIdentifier(imgs.get(column), "drawable",
-            if(parties.get(column).equals("D")){
-                id = mContext.getResources().getIdentifier("dem_party", "drawable",
-                        "com.cs160.elena.represent");
-            } else if (parties.get(column).equals("R")){
-                id = mContext.getResources().getIdentifier("rep_party", "drawable",
-                        "com.cs160.elena.represent");
-            } else {
-                id = mContext.getResources().getIdentifier("us_flag", "drawable",
-                        "com.cs160.elena.represent");
-            }
-        }
+//        if (column == names.size()){
+//            id = mContext.getResources().getIdentifier("us_flag", "drawable",
+//                    "com.cs160.elena.represent");
+//        } else {
+//            //id = mContext.getResources().getIdentifier(imgs.get(column), "drawable",
+//            if(parties.get(column).equals("D")){
+//                id = mContext.getResources().getIdentifier("dem_party", "drawable",
+//                        "com.cs160.elena.represent");
+//            } else if (parties.get(column).equals("R")){
+//                id = mContext.getResources().getIdentifier("rep_party", "drawable",
+//                        "com.cs160.elena.represent");
+//            } else {
+//                id = mContext.getResources().getIdentifier("us_flag", "drawable",
+//                        "com.cs160.elena.represent");
+//            }
+//        }
+        id = mContext.getResources().getIdentifier("people", "drawable",
+                "com.cs160.elena.represent");
         return mContext.getResources().getDrawable(id, mContext.getTheme());
     }
 
